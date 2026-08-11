@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>Editable Speech · Student & Class · Color Headline</title>
+    <!-- Font for better Kannada/Devanagari support -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        /* ----- global reset & base ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 14px;
+            font-family: 'Noto Sans Devanagari', 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        /* ----- A4 card container ----- */
+        .a4-card {
+            width: 100%;
+            max-width: 840px;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 24px 48px -14px rgba(0, 0, 0, 0.22);
+            padding: 34px 34px 30px;
+            transition: box-shadow 0.2s;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* ----- COLOR HEADLINE (saffron inspired) ----- */
+        .speech-headline {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px 6px 14px;
+            border-bottom: 4px solid #ff9933; /* saffron */
+            background: linear-gradient(145deg, #ff8c1a, #e67300);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 12px rgba(255, 140, 26, 0.15);
+            line-height: 1.3;
+            word-break: break-word;
+            font-family: 'Noto Sans Devanagari', 'Segoe UI', sans-serif;
+        }
+        /* fallback for browsers that don't support background-clip */
+        @supports not (background-clip: text) {
+            .speech-headline {
+                color: #d96c00;
+                background: none;
+                -webkit-text-fill-color: #d96c00;
+                text-shadow: 0 2px 8px rgba(217, 108, 0, 0.12);
+            }
+        }
+
+        /* ----- student & class fields (editable inline) ----- */
+        .student-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px 28px;
+            background: #f7f9ff;
+            padding: 14px 22px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #dfe6f2;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px 12px;
+            flex-wrap: wrap;
+            flex: 1 1 150px;
+        }
+
+        .meta-item label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1f2a44;
+            letter-spacing: 0.3px;
+            min-width: 60px;
+        }
+
+        .meta-item .editable-field {
+            background: transparent;
+            border: none;
+            border-bottom: 2px dashed #b7c0d4;
+            padding: 4px 6px;
+            font-family: 'Noto Sans Devanagari', 'Segoe UI', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #0b1a33;
+            min-width: 110px;
+            flex: 1;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .meta-item .editable-field:focus {
+            border-bottom-color: #1f4f9e;
+            background: #ffffffd0;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .meta-item .editable-field::placeholder {
+            color: #8f99b0;
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+
+        /* ----- editable speech content ----- */
+        .speech-content {
+            outline: none;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #1e1e2a;
+            word-break: break-word;
+            min-height: 380px;
+            transition: background 0.1s;
+            border-radius: 12px;
+            padding: 8px 4px;
+            font-family: 'Noto Sans Devanagari', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .speech-content:empty::before {
+            content: "✍️ ನಿಮ್ಮ ಸ್ವಾತಂತ್ರ್ಯ ಭಾಷಣವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ ...";
+            color: #8a8fa3;
+            font-weight: 400;
+            font-size: 1rem;
+            letter-spacing: 0.3px;
+        }
+
+        .speech-content:focus {
+            background: #fafbff;
+            box-shadow: inset 0 0 0 2px #2b4b9a10;
+        }
+
+        .speech-content .student-placeholder,
+        .speech-content .class-placeholder {
+            background: #eef3ff;
+            padding: 0 6px;
+            border-radius: 6px;
+            color: #0037a5;
+            font-weight: 600;
+            border: 1px dashed #a0b9e6;
+            display: inline-block;
+            min-width: 30px;
+        }
+
+        /* ----- print styles (A4 friendly) ----- */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+                display: block;
+            }
+            .a4-card {
+                max-width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0.6in 0.6in 0.5in;
+                margin: 0 auto;
+                border: none;
+                background: white;
+                page-break-after: avoid;
+            }
+            .speech-headline {
+                font-size: 2rem;
+                border-bottom: 4px solid #ff9933;
+                background: none !important;
+                -webkit-text-fill-color: #d96c00 !important;
+                color: #d96c00 !important;
+                text-shadow: none !important;
+            }
+            .student-meta {
+                background: #f3f6fe;
+                border: 1px solid #ccd6e8;
+                padding: 10px 16px;
+                border-radius: 12px;
+            }
+            .meta-item .editable-field {
+                border-bottom: 1px solid #9aa9c4;
+                background: transparent !important;
+            }
+            .speech-content {
+                font-size: 11.5pt;
+                line-height: 1.6;
+                min-height: 60vh;
+                padding: 0 2px;
+                background: white !important;
+                box-shadow: none !important;
+                border: none !important;
+                outline: none !important;
+            }
+            .speech-content .student-placeholder,
+            .speech-content .class-placeholder {
+                background: #e5edfc;
+                border: 1px solid #b3c7ea;
+                padding: 0 4px;
+            }
+            .action-bar {
+                display: none !important;
+            }
+            .reset-btn {
+                display: none !important;
+            }
+            .print-hint {
+                display: none !important;
+            }
+            .watermark-note {
+                display: none !important;
+            }
+            .speech-content:empty::before {
+                content: "✦ ಸ್ವಾತಂತ್ರ್ಯ ಭಾಷಣ — ಅಚ್ಚು ಮಾದರಿ ✦";
+                color: #aaa;
+            }
+            .speech-content * {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* ----- action bar (buttons) ----- */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 16px 20px;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            width: 100%;
+            max-width: 840px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #f0f2f7;
+            border: none;
+            padding: 12px 26px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            font-family: 'Noto Sans Devanagari', 'Segoe UI', sans-serif;
+            color: #1f2937;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.15s;
+            cursor: pointer;
+            border: 1px solid #d0d7e2;
+            background: #ffffff;
+            min-width: 100px;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary {
+            background: #0b2b5c;
+            border: 1px solid #0b2b5c;
+            color: white;
+            box-shadow: 0 6px 12px -4px #0b2b5c30;
+        }
+
+        .btn-primary:hover {
+            background: #1a3f7a;
+            transform: scale(1.01);
+            border-color: #1a3f7a;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #adb5c7;
+            color: #2c3e5c;
+        }
+
+        .btn-outline:hover {
+            background: #eef2f9;
+            border-color: #7c88a0;
+        }
+
+        .btn-danger-outline {
+            background: transparent;
+            border: 1px solid #d17a7a;
+            color: #a14242;
+        }
+
+        .btn-danger-outline:hover {
+            background: #fff0f0;
+            border-color: #b75a5a;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .print-hint {
+            font-size: 0.8rem;
+            color: #5d677a;
+            background: #f1f4fa;
+            padding: 6px 18px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #dce2ed;
+            letter-spacing: 0.2px;
+        }
+
+        .toast-feedback {
+            font-size: 0.8rem;
+            color: #206b3e;
+            background: #e2f3e8;
+            padding: 4px 14px;
+            border-radius: 40px;
+            display: inline-block;
+            border: 1px solid #aad0b7;
+            transition: opacity 0.2s;
+        }
+
+        .toast-feedback.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .reset-trigger {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .watermark-note {
+            color: #767e95;
+            font-size: 0.7rem;
+            margin-top: 4px;
+            opacity: 0.6;
+        }
+
+        /* responsive fine-tune */
+        @media (max-width: 640px) {
+            .a4-card {
+                padding: 20px 16px;
+            }
+            .speech-headline {
+                font-size: 1.7rem;
+                padding: 6px 2px 12px;
+            }
+            .student-meta {
+                flex-direction: column;
+                gap: 12px;
+                padding: 14px 14px;
+            }
+            .meta-item {
+                flex: 1 1 auto;
+            }
+            .meta-item label {
+                min-width: 50px;
+                font-size: 0.85rem;
+            }
+            .speech-content {
+                font-size: 0.95rem;
+                min-height: 300px;
+            }
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+                min-width: 70px;
+            }
+            .action-bar {
+                gap: 10px;
+            }
+            .btn-group {
+                gap: 8px;
+            }
+            .print-hint {
+                font-size: 0.7rem;
+                padding: 4px 12px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .a4-card {
+                padding: 14px 10px;
+            }
+            .speech-headline {
+                font-size: 1.4rem;
+            }
+            .speech-content {
+                font-size: 0.9rem;
+                line-height: 1.6;
+                min-height: 240px;
+            }
+            .meta-item .editable-field {
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- A4 CARD -->
+    <div class="a4-card" id="a4Card">
+        <!-- COLOR HEADLINE -->
+        <div class="speech-headline" id="headline" contenteditable="false">
+            🇮🇳 ಸ್ವಾತಂತ್ರ್ಯ ದಿನಾಚರಣೆಯ ಭಾಷಣ
+        </div>
+
+        <!-- student & class meta (editable) -->
+        <div class="student-meta">
+            <div class="meta-item">
+                <label for="studentNameInput">👤 ವಿದ್ಯಾರ್ಥಿ</label>
+                <input type="text" id="studentNameInput" class="editable-field" placeholder="ನಿಮ್ಮ ಹೆಸರು" value="ಅನನ್ಯ ಕುಮಾರ್" spellcheck="true" />
+            </div>
+            <div class="meta-item">
+                <label for="classInput">🏫 ತರಗತಿ</label>
+                <input type="text" id="classInput" class="editable-field" placeholder="ಉದಾ: ೧೦ನೇ ತರಗತಿ" value="೧೦ನೇ ತರಗತಿ" spellcheck="true" />
+            </div>
+        </div>
+
+        <!-- editable speech area -->
+        <div 
+            id="speechEditor" 
+            class="speech-content" 
+            contenteditable="true" 
+            role="textbox" 
+            aria-multiline="true"
+            spellcheck="true"
+            lang="kn"
+        >
+            <!-- speech with placeholders for student & class -->
+            <p>ಗೌರವಾನ್ವಿತ ಮುಖ್ಯ ಅತಿಥಿಗಳೇ, ಪ್ರಾಂಶುಪಾಲರೇ, ಶಿಕ್ಷಕರೇ, ಪೋಷಕರೇ ಮತ್ತು ನನ್ನ ಪ್ರೀತಿಯ ಸ್ನೇಹಿತರೇ, ಎಲ್ಲರಿಗೂ ೭೯ನೇ ಸ್ವಾತಂತ್ರ್ಯ ದಿನಾಚರಣೆಯ ಹಾರ್ದಿಕ ಶುಭಾಶಯಗಳು.</p>
+            <p>ನಾನು <span class="student-placeholder" contenteditable="false">[ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು]</span>, <span class="class-placeholder" contenteditable="false">[ತರಗತಿ]</span> ರಿಂದ ಈ ಭಾಷಣ ಮಾಡುತ್ತಿದ್ದೇನೆ. ಇಂದು ನಮ್ಮ ದೇಶದ ಇತಿಹಾಸದಲ್ಲೇ ಅತ್ಯಂತ ಮಹತ್ವದ ದಿನ. ೧೯೪೭ರ ಆಗಸ್ಟ್ ೧೫ರಂದು ಭಾರತವು ಬ್ರಿಟಿಷರ ಆಳ್ವಿಕೆಯಿಂದ ಸ್ವಾತಂತ್ರ್ಯ ಪಡೆಯಿತು. ಸುಮಾರು ೨೦೦ ವರ್ಷಗಳ ಗುಲಾಮಗಿರಿಯ ನಂತರ, ಅನೇಕ ವರ್ಷಗಳ ಹೋರಾಟ, ತ್ಯಾಗ ಮತ್ತು ಬಲಿದಾನದ ಫಲವಾಗಿ ನಮಗೆ ಈ ಅಮೂಲ್ಯ ಸ್ವಾತಂತ್ರ್ಯ ದೊರೆತಿದೆ.</p>
+            <p>ನಮ್ಮ ಸ್ವಾತಂತ್ರ್ಯಕ್ಕಾಗಿ ಹೋರಾಡಿದ ಮಹಾನ್ ವೀರರನ್ನು ನಾವು ಮರೆಯುವಂತಿಲ್ಲ. ಮಹಾತ್ಮ ಗಾಂಧೀಜಿ, ನೇತಾಜಿ ಸುಭಾಷ್ ಚಂದ್ರ ಬೋಸ್, ಭಗತ್ ಸಿಂಗ್, ಸರ್ದಾರ್ ವಲ್ಲಭಭಾಯಿ ಪಟೇಲ್ ಸೇರಿದಂತೆ ಅಸಂಖ್ಯಾತ ಹೋರಾಟಗಾರರು ತಮ್ಮೆಲ್ಲವನ್ನೂ ತ್ಯಾಗಮಾಡಿದರು. ಅವರ ತ್ಯಾಗದಿಂದಲೇ ನಾವು ಇಂದು ಶ್ವಾಸಿಸುತ್ತಿದ್ದೇವೆ, ಸ್ವತಂತ್ರ ದೇಶದಲ್ಲಿ ಬದುಕುತ್ತಿದ್ದೇವೆ.</p>
+            <p>ಸ್ವಾತಂತ್ರ್ಯ ಎಂದರೆ ಕೇವಲ ರಾಜಕೀಯ ಸ್ವಾತಂತ್ರ್ಯವಲ್ಲ, ಅದು ಸಮಾನತೆ, ಆರ್ಥಿಕ ಪ್ರಗತಿ ಮತ್ತು ವೈಯಕ್ತಿಕ ಹಕ್ಕುಗಳನ್ನು ಒಳಗೊಂಡಿರುವ ವಿಶಾಲ ಪರಿಕಲ್ಪನೆ. ವಿದ್ಯಾರ್ಥಿಗಳಾದ ನಾವು ದೇಶದ ಭವಿಷ್ಯ. ಉತ್ತಮ ಶಿಕ್ಷಣ ಪಡೆಯುವುದು ಮಾತ್ರವಲ್ಲದೆ, ಶಿಸ್ತು, ಪ್ರಾಮಾಣಿಕತೆ, ಮಾನವೀಯತೆ ಮತ್ತು ದೇಶಪ್ರೇಮವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಬೇಕು.</p>
+            <p>• ಸಾರ್ವಜನಿಕ ಆಸ್ತಿಯನ್ನು ಕಾಪಾಡುವುದು<br />• ಪರಿಸರವನ್ನು ರಕ್ಷಿಸುವುದು<br />• ಸಮಾಜದಲ್ಲಿ ಎಲ್ಲರನ್ನೂ ಗೌರವಿಸುವುದು — ಇವು ನಮ್ಮ ಪ್ರಮುಖ ಕರ್ತವ್ಯಗಳಾಗಿವೆ.</p>
+            <p>"ನಾವೆಲ್ಲರೂ ಭಾರತೀಯರು" ಎಂಬ ಭಾವನೆಯೊಂದಿಗೆ ಜಾತಿ, ಧರ್ಮ, ಭಾಷೆ ಮತ್ತು ಪ್ರದೇಶದ ಭೇದಗಳನ್ನು ಮೀರಿ ಒಂದಾಗಿ ಸಾಗೋಣ. ನಮ್ಮ ಜ್ಞಾನ ಮತ್ತು ಪ್ರತಿಭೆಯನ್ನು ದೇಶದ ಪ್ರಗತಿಗಾಗಿ ಬಳಸೋಣ.</p>
+            <p>ಈ ಸ್ವಾತಂತ್ರ್ಯ ದಿನದಂದು, ದೇಶದ ಏಕತೆ ಮತ್ತು ಅಭಿವೃದ್ಧಿಗಾಗಿ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಶ್ರಮಿಸುವ ಸಂಕಲ್ಪ ಮಾಡೋಣ.</p>
+            <p><strong>ಜೈ ಹಿಂದ್! ವಂದೇ ಮಾತರಂ!</strong></p>
+            <p style="margin-top:12px; font-size:0.9rem; color:#2b4a7a;">— <span class="student-placeholder" contenteditable="false">[ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು]</span>, <span class="class-placeholder" contenteditable="false">[ತರಗತಿ]</span></p>
+        </div>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar">
+        <div class="btn-group">
+            <button class="btn btn-primary" id="printBtn" aria-label="Print speech">🖨️ ಪ್ರಿಂಟ್ / Print</button>
+            <button class="btn btn-danger-outline" id="resetBtn" aria-label="Reset to original speech">↺ ಮರುಹೊಂದಿಸಿ / Reset</button>
+        </div>
+        <div class="reset-trigger">
+            <span class="print-hint" id="printHint">📄 A4 · ಮೊಬೈಲ್ ಸ್ನೇಹಿ</span>
+            <span id="resetToast" class="toast-feedback hide">✓ ಮರುಸ್ಥಾಪಿಸಲಾಗಿದೆ</span>
+        </div>
+    </div>
+    <div class="watermark-note">✎ ಎಡಿಟ್ ಮಾಡಬಹುದು · ವಿದ್ಯಾರ್ಥಿ &amp; ತರಗತಿ ಕ್ಷೇತ್ರಗಳು ಸಂಪಾದಿಸಬಹುದು</div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            const editor = document.getElementById('speechEditor');
+            const resetBtn = document.getElementById('resetBtn');
+            const printBtn = document.getElementById('printBtn');
+            const toast = document.getElementById('resetToast');
+
+            const studentInput = document.getElementById('studentNameInput');
+            const classInput = document.getElementById('classInput');
+            const headline = document.getElementById('headline');
+
+            // ----- original snapshot (innerHTML) -----
+            const ORIGINAL_HTML = `<p>ಗೌರವಾನ್ವಿತ ಮುಖ್ಯ ಅತಿಥಿಗಳೇ, ಪ್ರಾಂಶುಪಾಲರೇ, ಶಿಕ್ಷಕರೇ, ಪೋಷಕರೇ ಮತ್ತು ನನ್ನ ಪ್ರೀತಿಯ ಸ್ನೇಹಿತರೇ, ಎಲ್ಲರಿಗೂ ೭೯ನೇ ಸ್ವಾತಂತ್ರ್ಯ ದಿನಾಚರಣೆಯ ಹಾರ್ದಿಕ ಶುಭಾಶಯಗಳು.</p>
+            <p>ನಾನು <span class="student-placeholder" contenteditable="false">[ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು]</span>, <span class="class-placeholder" contenteditable="false">[ತರಗತಿ]</span> ರಿಂದ ಈ ಭಾಷಣ ಮಾಡುತ್ತಿದ್ದೇನೆ. ಇಂದು ನಮ್ಮ ದೇಶದ ಇತಿಹಾಸದಲ್ಲೇ ಅತ್ಯಂತ ಮಹತ್ವದ ದಿನ. ೧೯೪೭ರ ಆಗಸ್ಟ್ ೧೫ರಂದು ಭಾರತವು ಬ್ರಿಟಿಷರ ಆಳ್ವಿಕೆಯಿಂದ ಸ್ವಾತಂತ್ರ್ಯ ಪಡೆಯಿತು. ಸುಮಾರು ೨೦೦ ವರ್ಷಗಳ ಗುಲಾಮಗಿರಿಯ ನಂತರ, ಅನೇಕ ವರ್ಷಗಳ ಹೋರಾಟ, ತ್ಯಾಗ ಮತ್ತು ಬಲಿದಾನದ ಫಲವಾಗಿ ನಮಗೆ ಈ ಅಮೂಲ್ಯ ಸ್ವಾತಂತ್ರ್ಯ ದೊರೆತಿದೆ.</p>
+            <p>ನಮ್ಮ ಸ್ವಾತಂತ್ರ್ಯಕ್ಕಾಗಿ ಹೋರಾಡಿದ ಮಹಾನ್ ವೀರರನ್ನು ನಾವು ಮರೆಯುವಂತಿಲ್ಲ. ಮಹಾತ್ಮ ಗಾಂಧೀಜಿ, ನೇತಾಜಿ ಸುಭಾಷ್ ಚಂದ್ರ ಬೋಸ್, ಭಗತ್ ಸಿಂಗ್, ಸರ್ದಾರ್ ವಲ್ಲಭಭಾಯಿ ಪಟೇಲ್ ಸೇರಿದಂತೆ ಅಸಂಖ್ಯಾತ ಹೋರಾಟಗಾರರು ತಮ್ಮೆಲ್ಲವನ್ನೂ ತ್ಯಾಗಮಾಡಿದರು. ಅವರ ತ್ಯಾಗದಿಂದಲೇ ನಾವು ಇಂದು ಶ್ವಾಸಿಸುತ್ತಿದ್ದೇವೆ, ಸ್ವತಂತ್ರ ದೇಶದಲ್ಲಿ ಬದುಕುತ್ತಿದ್ದೇವೆ.</p>
+            <p>ಸ್ವಾತಂತ್ರ್ಯ ಎಂದರೆ ಕೇವಲ ರಾಜಕೀಯ ಸ್ವಾತಂತ್ರ್ಯವಲ್ಲ, ಅದು ಸಮಾನತೆ, ಆರ್ಥಿಕ ಪ್ರಗತಿ ಮತ್ತು ವೈಯಕ್ತಿಕ ಹಕ್ಕುಗಳನ್ನು ಒಳಗೊಂಡಿರುವ ವಿಶಾಲ ಪರಿಕಲ್ಪನೆ. ವಿದ್ಯಾರ್ಥಿಗಳಾದ ನಾವು ದೇಶದ ಭವಿಷ್ಯ. ಉತ್ತಮ ಶಿಕ್ಷಣ ಪಡೆಯುವುದು ಮಾತ್ರವಲ್ಲದೆ, ಶಿಸ್ತು, ಪ್ರಾಮಾಣಿಕತೆ, ಮಾನವೀಯತೆ ಮತ್ತು ದೇಶಪ್ರೇಮವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಬೇಕು.</p>
+            <p>• ಸಾರ್ವಜನಿಕ ಆಸ್ತಿಯನ್ನು ಕಾಪಾಡುವುದು<br />• ಪರಿಸರವನ್ನು ರಕ್ಷಿಸುವುದು<br />• ಸಮಾಜದಲ್ಲಿ ಎಲ್ಲರನ್ನೂ ಗೌರವಿಸುವುದು — ಇವು ನಮ್ಮ ಪ್ರಮುಖ ಕರ್ತವ್ಯಗಳಾಗಿವೆ.</p>
+            <p>"ನಾವೆಲ್ಲರೂ ಭಾರತೀಯರು" ಎಂಬ ಭಾವನೆಯೊಂದಿಗೆ ಜಾತಿ, ಧರ್ಮ, ಭಾಷೆ ಮತ್ತು ಪ್ರದೇಶದ ಭೇದಗಳನ್ನು ಮೀರಿ ಒಂದಾಗಿ ಸಾಗೋಣ. ನಮ್ಮ ಜ್ಞಾನ ಮತ್ತು ಪ್ರತಿಭೆಯನ್ನು ದೇಶದ ಪ್ರಗತಿಗಾಗಿ ಬಳಸೋಣ.</p>
+            <p>ಈ ಸ್ವಾತಂತ್ರ್ಯ ದಿನದಂದು, ದೇಶದ ಏಕತೆ ಮತ್ತು ಅಭಿವೃದ್ಧಿಗಾಗಿ ಪ್ರಾಮಾಣಿಕವಾಗಿ ಶ್ರಮಿಸುವ ಸಂಕಲ್ಪ ಮಾಡೋಣ.</p>
+            <p><strong>ಜೈ ಹಿಂದ್! ವಂದೇ ಮಾತರಂ!</strong></p>
+            <p style="margin-top:12px; font-size:0.9rem; color:#2b4a7a;">— <span class="student-placeholder" contenteditable="false">[ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು]</span>, <span class="class-placeholder" contenteditable="false">[ತರಗತಿ]</span></p>`;
+
+            const ORIGINAL_HEADLINE = '🇮🇳 ಸ್ವಾತಂತ್ರ್ಯ ದಿನಾಚರಣೆಯ ಭಾಷಣ';
+
+            // ----- update placeholders in speech based on inputs -----
+            function updatePlaceholders() {
+                const studentVal = studentInput.value.trim() || '[ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು]';
+                const classVal = classInput.value.trim() || '[ತರಗತಿ]';
+
+                const placeholders = editor.querySelectorAll('.student-placeholder, .class-placeholder');
+                placeholders.forEach(el => {
+                    if (el.classList.contains('student-placeholder')) {
+                        el.textContent = studentVal;
+                    } else if (el.classList.contains('class-placeholder')) {
+                        el.textContent = classVal;
+                    }
+                });
+            }
+
+            studentInput.addEventListener('input', updatePlaceholders);
+            classInput.addEventListener('input', updatePlaceholders);
+
+            // ----- reset function: restore headline + speech + inputs -----
+            function resetSpeech() {
+                // restore headline
+                headline.textContent = ORIGINAL_HEADLINE;
+
+                // restore speech HTML
+                editor.innerHTML = ORIGINAL_HTML;
+
+                // reset inputs
+                studentInput.value = 'ಅನನ್ಯ ಕುಮಾರ್';
+                classInput.value = '೧೦ನೇ ತರಗತಿ';
+
+                // update placeholders
+                updatePlaceholders();
+
+                // toast
+                toast.classList.remove('hide');
+                clearTimeout(window.toastTimer);
+                window.toastTimer = setTimeout(() => {
+                    toast.classList.add('hide');
+                }, 2200);
+
+                editor.focus();
+                const range = document.createRange();
+                const sel = window.getSelection();
+                if (editor.firstChild) {
+                    range.setStart(editor.firstChild, 0);
+                    range.collapse(true);
+                    sel?.removeAllRanges();
+                    sel?.addRange(range);
+                }
+            }
+
+            // ----- print -----
+            function printSpeech() {
+                updatePlaceholders();
+                window.print();
+            }
+
+            // ----- event listeners -----
+            resetBtn.addEventListener('click', resetSpeech);
+            printBtn.addEventListener('click', printSpeech);
+
+            // initial sync
+            updatePlaceholders();
+
+            // keyboard shortcut: Ctrl+Shift+R
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'r' || e.key === 'R')) {
+                    e.preventDefault();
+                    resetSpeech();
+                }
+            });
+
+            // double click on print hint (fun)
+            document.getElementById('printHint')?.addEventListener('dblclick', function() {
+                this.innerText = '📄 A4 · ಸಿದ್ಧ ಮುದ್ರಣ';
+                setTimeout(() => {
+                    this.innerText = '📄 A4 · ಮೊಬೈಲ್ ಸ್ನೇಹಿ';
+                }, 1500);
+            });
+
+            console.log('✅ Colored headline · Student & Class fields · Reset & Print ready');
+        })();
+    </script>
+</body>
+</html>
